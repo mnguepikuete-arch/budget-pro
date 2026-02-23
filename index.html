@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4a90e2">
+    <meta name="description" content="Budget Pro - Gérez vos dépenses">
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Budget Pro">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <title>Budget Pro – Tableau de bord</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js : bibliothèque de graphiques (chargée depuis un CDN)
+         Le service worker la mettra en cache lors du premier chargement -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <!-- ── BANNIÈRE HORS LIGNE ──────────────────────────────── -->
+    <div id="offline-banner" class="offline-banner hidden">
+        📵 Mode hors ligne — Dernières données affichées
+    </div>
+
+    <!-- ── BARRE DE NAVIGATION SUPÉRIEURE ───────────────────── -->
+    <nav class="topbar">
+        <div class="topbar-left">
+            <span class="logo-icon">💰</span>
+            <span class="logo-text">Budget Pro</span>
+        </div>
+        <div class="topbar-right">
+            <span id="nav-username" class="nav-username"></span>
+            <button class="btn-logout" id="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+    </nav>
+
+    <!-- ── CONTENU PRINCIPAL ─────────────────────────────────── -->
+    <div class="main-container">
+
+        <!-- ────────────────────────────────────────────────────
+             SECTION 1 : FORMULAIRE D'AJOUT DE DÉPENSE
+             ──────────────────────────────────────────────────── -->
+        <section class="card" id="add-section">
+            <h2 class="section-title">➕ Nouvelle Dépense</h2>
+
+            <form id="expense-form" novalidate>
+
+                <!-- Ligne 1 : Nom + Montant -->
+                <div class="form-row">
+                    <div class="field-group">
+                        <label for="name">Désignation</label>
+                        <input type="text" id="name" placeholder="Ex: Courses Marché" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="amount">Montant (FCFA)</label>
+                        <input type="number" id="amount" placeholder="Ex: 2500" min="1" required>
+                    </div>
+                </div>
+
+                <!-- Ligne 2 : Catégorie + Date -->
+                <div class="form-row">
+                    <div class="field-group">
+                        <label for="category">Catégorie</label>
+                        <select id="category">
+                            <option value="Alimentation">🍽 Alimentation</option>
+                            <option value="Transport">🚌 Transport</option>
+                            <option value="Loisirs">🎉 Loisirs</option>
+                            <option value="Santé">💊 Santé</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="expense-date">Date de la dépense</label>
+                        <input type="date" id="expense-date" required>
+                    </div>
+                </div>
+
+                <!-- Ligne 3 : Heure + Minute -->
+                <div class="form-row">
+                    <div class="field-group">
+                        <label for="expense-hour">Heure</label>
+                        <select id="expense-hour">
+                            <!-- Les options d'heures (0h à 23h) seront générées par JavaScript -->
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="expense-minute">Minute</label>
+                        <select id="expense-minute">
+                            <option value="0">00 min</option>
+                            <option value="15">15 min</option>
+                            <option value="30">30 min</option>
+                            <option value="45">45 min</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Zone d'erreur formulaire -->
+                <div id="form-error" class="error-msg hidden"></div>
+                <div id="form-success" class="success-msg hidden"></div>
+
+                <button type="submit" class="btn-primary btn-full" id="add-btn">
+                    <span class="btn-text">💾 Enregistrer la dépense</span>
+                    <span class="btn-loading hidden">⏳ Enregistrement...</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- ────────────────────────────────────────────────────
+             SECTION 2 : GRAPHIQUES
+             ──────────────────────────────────────────────────── -->
+        <section class="card" id="chart-section">
+            <div class="section-header">
+                <h2 class="section-title">📊 Visualisation</h2>
+                <!-- Sélecteur du type de graphique -->
+                <div class="chart-controls">
+                    <select id="chart-type" onchange="changeChartType()">
+                        <option value="bar_h">📊 Barres (catégories)</option>
+                        <option value="pie">🥧 Camembert</option>
+                        <option value="doughnut">🍩 Anneau</option>
+                        <option value="line">📈 Courbe (évolution)</option>
+                        <option value="bar_month">📅 Barres (mois)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Zone où le graphique Chart.js sera dessiné -->
+            <div class="chart-wrapper">
+                <canvas id="main-chart"></canvas>
+            </div>
+        </section>
+
+        <!-- ────────────────────────────────────────────────────
+             SECTION 3 : FILTRES ET RÉSUMÉ
+             ──────────────────────────────────────────────────── -->
+        <div class="filter-bar">
+            <!-- Filtre par période -->
+            <div class="filter-group">
+                <label>📅 Période</label>
+                <select id="filter-period" onchange="applyFilters()">
+                    <option value="all">Toutes les dates</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month" selected>Ce mois-ci</option>
+                    <option value="year">Cette année</option>
+                </select>
+            </div>
+            <!-- Filtre par catégorie -->
+            <div class="filter-group">
+                <label>🏷 Catégorie</label>
+                <select id="filter-category" onchange="applyFilters()">
+                    <option value="Toutes">Toutes</option>
+                    <option value="Alimentation">🍽 Alimentation</option>
+                    <option value="Transport">🚌 Transport</option>
+                    <option value="Loisirs">🎉 Loisirs</option>
+                    <option value="Santé">💊 Santé</option>
+                </select>
+            </div>
+            <!-- Total affiché -->
+            <div class="total-box">
+                <span class="total-label">Total</span>
+                <span id="total-display">0</span>
+                <span class="total-currency">FCFA</span>
+            </div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────
+             SECTION 4 : LISTE DES DÉPENSES
+             ──────────────────────────────────────────────────── -->
+        <div class="table-wrapper">
+            <!-- Indicateur de chargement -->
+            <div id="loading-indicator" class="loading-indicator">
+                <div class="spinner"></div>
+                <p>Chargement...</p>
+            </div>
+
+            <!-- Message si aucune dépense -->
+            <div id="empty-state" class="empty-state hidden">
+                <div class="empty-icon">💸</div>
+                <p>Aucune dépense pour cette période.</p>
+                <p class="empty-sub">Utilisez le formulaire ci-dessus pour commencer.</p>
+            </div>
+
+            <!-- Tableau des dépenses (sur grand écran) -->
+            <table id="expense-table" class="expense-table hidden">
+                <thead>
+                    <tr>
+                        <th>📋 Dépense</th>
+                        <th>🏷 Catégorie</th>
+                        <th>📅 Date & Heure</th>
+                        <th>💵 Montant</th>
+                        <th>⚙️</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-list"></tbody>
+            </table>
+
+            <!-- Cartes des dépenses (sur mobile) - les deux s'affichent selon l'écran -->
+            <div id="expense-cards" class="expense-cards hidden"></div>
+        </div>
+
+    </div><!-- /main-container -->
+
+    <!-- ── BOUTON FLOTTANT (FAB) ─────────────────────────────────
+         Sur mobile, ce bouton défile avec l'utilisateur et
+         permet d'accéder rapidement au formulaire d'ajout -->
+    <button class="fab" onclick="scrollToForm()" title="Ajouter une dépense">
+        ＋
+    </button>
+
+    <script src="app.js"></script>
+</body>
+</html>

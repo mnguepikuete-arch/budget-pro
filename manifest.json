@@ -1,0 +1,55 @@
+{
+  "_comment": "FICHIER : manifest.json — Définit l'application PWA pour l'installation sur smartphone",
+  "name": "Budget Pro - Suivi des Dépenses",
+  "short_name": "Budget Pro",
+  "description": "Gérez vos dépenses facilement, même hors ligne",
+  "start_url": "/budget-pro/index.html",
+  "scope": "/budget-pro/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#4a90e2",
+  "theme_color": "#4a90e2",
+  "lang": "fr-CM",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ajouter une dépense",
+      "short_name": "Ajouter",
+      "description": "Enregistrer rapidement une dépense",
+      "url": "/budget-pro/index.html#add",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

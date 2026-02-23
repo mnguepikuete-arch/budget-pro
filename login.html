@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <!--
+        viewport : Essentiel pour le responsive mobile.
+        width=device-width  = utilise la largeur réelle de l'écran
+        initial-scale=1.0   = pas de zoom automatique
+        user-scalable=no    = empêche le double-tap zoom (meilleur UX mobile)
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4a90e2">
+    <meta name="description" content="Budget Pro - Connectez-vous à votre espace de suivi">
+
+    <!-- PWA : Permet l'installation sur l'écran d'accueil -->
+    <link rel="manifest" href="manifest.json">
+    <!-- iOS Safari : Paramètres spéciaux pour iPhone/iPad -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Budget Pro">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <title>Budget Pro – Connexion</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+
+    <!-- ── PAGE DE CONNEXION ───────────────────────────────── -->
+    <div class="login-wrapper">
+        <!-- Logo / En-tête -->
+        <div class="login-header">
+            <div class="login-logo">💰</div>
+            <h1>Budget Pro</h1>
+            <p>Suivi intelligent de vos dépenses</p>
+        </div>
+
+        <!-- Carte de formulaire -->
+        <div class="login-card">
+            <!-- Onglets : Connexion / Inscription -->
+            <div class="tab-switcher">
+                <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">Connexion</button>
+                <button class="tab-btn"        id="tab-register" onclick="switchTab('register')">Créer un compte</button>
+            </div>
+
+            <!-- ── FORMULAIRE CONNEXION ─────────────────── -->
+            <form id="login-form" class="auth-form active" novalidate>
+                <div class="field-group">
+                    <label for="login-username">👤 Nom d'utilisateur</label>
+                    <input
+                        type="text"
+                        id="login-username"
+                        placeholder="Votre nom d'utilisateur"
+                        autocomplete="username"
+                        required>
+                </div>
+                <div class="field-group">
+                    <label for="login-password">🔒 Mot de passe</label>
+                    <div class="password-wrapper">
+                        <input
+                            type="password"
+                            id="login-password"
+                            placeholder="Votre mot de passe"
+                            autocomplete="current-password"
+                            required>
+                        <!-- Bouton pour afficher/masquer le mot de passe -->
+                        <button type="button" class="eye-btn" onclick="togglePassword('login-password', this)">👁</button>
+                    </div>
+                </div>
+
+                <!-- Zone d'affichage des erreurs -->
+                <div id="login-error" class="error-msg hidden"></div>
+
+                <button type="submit" class="btn-primary btn-full" id="login-btn">
+                    <span class="btn-text">Se connecter</span>
+                    <span class="btn-loading hidden">⏳ Connexion...</span>
+                </button>
+            </form>
+
+            <!-- ── FORMULAIRE INSCRIPTION ───────────────── -->
+            <form id="register-form" class="auth-form" novalidate>
+                <div class="field-group">
+                    <label for="reg-username">👤 Nom d'utilisateur</label>
+                    <input
+                        type="text"
+                        id="reg-username"
+                        placeholder="Choisir un nom (3 car. min)"
+                        autocomplete="username"
+                        required>
+                </div>
+                <div class="field-group">
+                    <label for="reg-password">🔒 Mot de passe</label>
+                    <div class="password-wrapper">
+                        <input
+                            type="password"
+                            id="reg-password"
+                            placeholder="6 caractères minimum"
+                            autocomplete="new-password"
+                            required>
+                        <button type="button" class="eye-btn" onclick="togglePassword('reg-password', this)">👁</button>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label for="reg-password2">🔒 Confirmer le mot de passe</label>
+                    <div class="password-wrapper">
+                        <input
+                            type="password"
+                            id="reg-password2"
+                            placeholder="Répétez le mot de passe"
+                            autocomplete="new-password"
+                            required>
+                    </div>
+                </div>
+
+                <div id="register-error" class="error-msg hidden"></div>
+                <div id="register-success" class="success-msg hidden"></div>
+
+                <button type="submit" class="btn-primary btn-full" id="register-btn">
+                    <span class="btn-text">Créer mon compte</span>
+                    <span class="btn-loading hidden">⏳ Création...</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Indication hors ligne -->
+        <div id="offline-banner" class="offline-banner hidden">
+            📵 Vous êtes hors ligne
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>
